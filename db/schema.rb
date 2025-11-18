@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_11_205229) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_18_001219) do
   create_table "additional_route_endpoints", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.integer "route_id"
     t.string "endpoint_type"
@@ -118,6 +118,23 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_205229) do
     t.datetime "updated_at"
     t.boolean "include_attachments", default: true
     t.integer "timeout"
+  end
+
+  create_table "idempotency_keys", charset: "utf8mb4", collation: "utf8mb4_uca1400_ai_ci", force: :cascade do |t|
+    t.integer "credential_id", null: false
+    t.string "idempotency_key", null: false
+    t.string "request_method", limit: 10
+    t.string "request_path"
+    t.string "request_params_hash", limit: 64
+    t.integer "response_code"
+    t.text "response_body", size: :medium
+    t.datetime "locked_at"
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["credential_id", "idempotency_key"], name: "index_idempotency_on_credential_and_key", unique: true
+    t.index ["expires_at"], name: "index_idempotency_keys_on_expires_at"
+    t.index ["locked_at"], name: "index_idempotency_keys_on_locked_at"
   end
 
   create_table "ip_addresses", id: :integer, charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
@@ -380,4 +397,5 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_11_205229) do
     t.index ["role"], name: "index_worker_roles_on_role", unique: true
   end
 
+  add_foreign_key "idempotency_keys", "credentials"
 end
